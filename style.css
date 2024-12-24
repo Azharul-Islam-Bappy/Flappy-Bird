@@ -19,6 +19,7 @@ body{
   border: 1.5px solid #000;
   margin-top: 50px;
   position: relative;
+  overflow: hidden;
 }
 
 .game{
@@ -48,6 +49,25 @@ body{
   background-repeat: no-repeat;
   position: absolute;
   top: 500px;
+}
+
+.obstacle{
+  height: 150px;
+  width: 40px; 
+  position: absolute;
+  top: 400px;
+  /*left: 90vw;*/
+  background-image: url('assets/flappybird-pipe.png');
+}
+
+.obstacleTop{
+  height: 280px;
+  width: 40px; 
+  position: absolute;
+  top: 0px;
+  /*left: 90vw;*/
+  background-image: url('assets/flappybird-pipe.png');
+  transform: rotate(180deg);
 }
 
 /* media query */
