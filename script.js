@@ -1,90 +1,115 @@
+// script.js
+
 // Storing variables
 const bird = document.querySelector(".bird");
 const gameContainer = document.querySelector(".game-container");
 const gameHeight = gameContainer.offsetHeight;
 const gameWidth = gameContainer.offsetWidth;
 
-let birdBottom = 280; // Starting position of the bird in pixels
-let gravity = 4; // Gravity effect, in pixels
-let isGameRunning = false; // To ensure the game starts only once
+let birdBottom = 280; 
+let gravity = 4;
+let isGameRunning = false; 
+let gameIntervals = []; // To track active intervals
 
 // Game start function
 function startGAME() {
-  if (!isGameRunning) { // Start the game only once
+  if (!isGameRunning) { 
     isGameRunning = true;
-    setInterval(gravityPull, 100); // Calls gravityPull every 100ms
-    setInterval(generateObstacle, 3000);
+    gameIntervals.push(setInterval(gravityPull, 100));
+    gameIntervals.push(setInterval(generateObstacle, 3000));
   }
 }
 
 // Gravity function
 function gravityPull() {
-  birdBottom -= gravity; // Decrease bird's bottom position
-  if (birdBottom >= 0) { // Prevent the bird from going below 0
-    bird.style.bottom = birdBottom + "px"; // Update the style dynamically
-  } else {
-    birdBottom = 0; // Keep the bird at ground level
-  }
+  birdBottom -= gravity; 
+  birdBottom = Math.max(birdBottom, 0); // Prevent falling below ground
+  bird.style.bottom = birdBottom + "px";
+
+  checkCollision(); // Check for collisions
 }
 
 function fly() {
-    
-  if(birdBottom + 98  < gameHeight) {
+  if (birdBottom + 98 < gameHeight) {
     birdBottom += 30;
-    bird.style.bottom = birdBottom + 'px';
-  }
-  else{
+    bird.style.bottom = birdBottom + "px";
+  } else {
     birdBottom = gameHeight - 98;
-    bird.style.bottom = birdBottom
+    bird.style.bottom = birdBottom + "px";
   }
-  console.log(birdBottom)
 }
 
-function generateObstacle () {
+// Generate obstacles
+function generateObstacle() {
   const obstacle = document.createElement("div");
   const obstacleTop = document.createElement("div");
-  
-  // adding class name
-  obstacleTop.classList.add("obstacleTop");
+
   obstacle.classList.add("obstacle");
-  
+  obstacleTop.classList.add("obstacleTop");
+
+  let obstacleLeft = gameWidth;
+  const gap = 150; // Fixed gap between obstacles
+  const obstacleHeight = Math.random() * (200 - 100) + 100;
+
+  obstacle.style.height = `${obstacleHeight}px`;
+  obstacleTop.style.height = `${gameHeight - obstacleHeight - gap}px`;
+
+  obstacle.style.left = `${obstacleLeft}px`;
+  obstacleTop.style.left = `${obstacleLeft}px`;
+
   gameContainer.appendChild(obstacle);
   gameContainer.appendChild(obstacleTop);
-  
-  let obstacleLeft = gameWidth;
-  obstacle.style.left = obstacleLeft + 'px';
-  obstacleTop.style.left = obstacleLeft + 'px';
-  
-  function moveLeft () {
-    obstacleLeft -= 5; 
-    obstacle.style.left = obstacleLeft + 'px';
-    obstacleTop.style.left = obstacleLeft + 'px';
-    
-    if (obstacleLeft < -10) {
-      // clearInterval(obstacleTimer);
+
+  function moveLeft() {
+    obstacleLeft -= 5;
+    obstacle.style.left = `${obstacleLeft}px`;
+    obstacleTop.style.left = `${obstacleLeft}px`;
+
+    // Remove obstacles if they go off-screen
+    if (obstacleLeft < -50) {
       obstacle.remove();
       obstacleTop.remove();
     }
+
+    checkCollision(); // Check for collisions
   }
-  
-  // random height generator 
-  let maxHeight = 280, minHeight = 90;
-  const obstacleTopHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-  const obstacleHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-  
-  
-  
-  obstacleTop.style.height = obstacleTopHeight + 'px';
-  obstacle.style.height = obstacleHeight + 'px';
-  
-  setInterval(moveLeft, 50);
+
+  const obstacleTimer = setInterval(moveLeft, 50);
+  gameIntervals.push(obstacleTimer);
 }
 
-// Initialize bird's position on page load
+// Collision Detection
+function checkCollision() {
+  const birdRect = bird.getBoundingClientRect();
+  const obstacles = document.querySelectorAll(".obstacle, .obstacleTop");
+
+  obstacles.forEach((obstacle) => {
+    const obstacleRect = obstacle.getBoundingClientRect();
+
+    if (
+      birdRect.left < obstacleRect.right &&
+      birdRect.right > obstacleRect.left &&
+      birdRect.top < obstacleRect.bottom &&
+      birdRect.bottom > obstacleRect.top
+    ) {
+      endGame();
+    }
+  });
+}
+
+// End Game
+function endGame() {
+  isGameRunning = false;
+  alert("Game Over!");
+
+  // Clear all active intervals
+  gameIntervals.forEach(clearInterval);
+  gameIntervals = [];
+}
+
+// Initialize bird's position
 bird.style.bottom = birdBottom + "px";
 
-
-
-// Event listener
+// Event listeners
 document.addEventListener("click", startGAME);
 document.addEventListener("click", fly);
